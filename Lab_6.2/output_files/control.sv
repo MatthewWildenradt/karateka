@@ -1,0 +1,565 @@
+//Two-always example for state machine
+
+module control (input  logic Clk,
+					 input  logic Reset,
+					 input  logic DEATH_sig,
+					 input  logic VICTORY_sig,
+					 input  logic [7:0] keycode,
+                output logic [8:0] colorcode,
+					 output logic [6:0] state,
+					 output logic out_clk
+					 );
+
+    // Declare signals curr_state, next_state of type enum
+    // with enum values of A, B, ..., F as the state values
+	 // Note that the length implies a max of 8 states, so you will need to bump this up for 8-bits
+    enum logic [6:0] {STAND, FIGHT, WALK, RUN, PUNCH, KICK, VICTORY, DEATH, REVERENCE,
+	 SWITCH0_0, SWITCH0_1, SWITCH0_2, SWITCH0_3, SWITCH0_4, SWITCH1_0, SWITCH1_1, SWITCH1_2, SWITCH1_3, SWITCH1_4,
+	 WALK1, WALK2, WALK3, WALK4, WALK5, WALK6, WALK7, WALK8, WALK9, RUN1, RUN2, RUN3, RUN4, RUN5, RUN6, RUN7, RUN8,
+	 RUN9, REVERENCE1, REVERENCE2, REVERENCE3, REVERENCE4, REVERENCE5, PUNCH1, PUNCH2, PUNCH3, PUNCH4, PUNCH5,
+	 PUNCH6, PUNCH7, PUNCH8, PUNCH9, PUNCH10, KICK1, KICK2, KICK3, KICK4, VICTORY1, VICTORY2, VICTORY3, VICTORY4,
+	 VICTORY5, VICTORY6, VICTORY7, DEATH1, DEATH2, DEATH3, DEATH4
+	 }   curr_state, next_state; 
+	 
+	 assign state=curr_state;
+	 assign out_clk=clkdiv1;
+	
+	 // Cutting clock in half repeatedely 
+	 logic clkdiv0, clkdiv1, clkdiv2, clkdiv3, clkdiv4, clkdiv5, clkdiv6, clkdiv7, clkdiv8, clkdiv9, clkdiv10, clkdiv11, clkdiv12;
+	 
+	 always_ff @ (posedge Clk)
+    begin 
+        clkdiv0 <= ~ (clkdiv0);
+    end
+	 
+	 always_ff @ (posedge clkdiv0)
+    begin 
+        clkdiv1 <= ~ (clkdiv1);
+    end
+	 
+	 /*always_ff @ (posedge clkdiv1)
+    begin 
+        clkdiv2 <= ~ (clkdiv2);
+    end
+	 
+	 always_ff @ (posedge clkdiv2)
+    begin 
+        clkdiv3 <= ~ (clkdiv3);
+    end
+	 
+	 always_ff @ (posedge clkdiv3)
+    begin 
+        clkdiv4 <= ~ (clkdiv4);
+    end
+	 
+	 always_ff @ (posedge clkdiv4)
+    begin 
+        clkdiv5 <= ~ (clkdiv5);
+    end
+	 
+	 always_ff @ (posedge clkdiv5)
+    begin 
+        clkdiv6 <= ~ (clkdiv6);
+    end
+	 
+	 always_ff @ (posedge clkdiv6)
+    begin 
+        clkdiv7 <= ~ (clkdiv7);
+    end
+	 
+	 always_ff @ (posedge clkdiv7)
+    begin 
+        clkdiv8 <= ~ (clkdiv8);
+    end
+	 
+	 always_ff @ (posedge clkdiv8)
+    begin 
+        clkdiv9 <= ~ (clkdiv9);
+    end
+	 
+	 always_ff @ (posedge clkdiv9)
+    begin 
+        clkdiv10 <= ~ (clkdiv10);
+    end
+	 
+	 always_ff @ (posedge clkdiv10)
+    begin 
+        clkdiv11 <= ~ (clkdiv11);
+    end
+	 
+	 always_ff @ (posedge clkdiv11)
+    begin 
+        clkdiv12 <= ~ (clkdiv12);
+    end*/
+
+	//updates flip flop, current state is the only one
+    always_ff @ (posedge clkdiv1)  
+    begin
+		  if (Reset)
+            curr_state <= STAND;
+		  else if (DEATH_sig && curr_state!=DEATH && curr_state!=DEATH1 && curr_state!=DEATH2 && curr_state!=DEATH3 && curr_state!=DEATH4)
+				curr_state <= DEATH;
+		  else if (VICTORY_sig && curr_state!=VICTORY && curr_state!=VICTORY1 && curr_state!=VICTORY2 
+		  && curr_state!=VICTORY3 && curr_state!=VICTORY4 && curr_state!=VICTORY5 && curr_state!=VICTORY6 
+		  && curr_state!=VICTORY7)
+				curr_state <= VICTORY;
+        else if ( keycode==8'h55 && (curr_state==STAND) )
+            curr_state <= SWITCH0_0;
+		  else if ( keycode==8'h54 && (curr_state==FIGHT) )
+            curr_state <= SWITCH1_0;
+		  else if ( (keycode==8'h58) && (curr_state==STAND || curr_state==RUN) )
+            curr_state <= REVERENCE;
+		  else if ( (keycode==8'h56) && (curr_state==FIGHT || curr_state==WALK) )
+            curr_state <= PUNCH;
+		  else if ( (keycode==8'h57) && (curr_state==FIGHT || curr_state==WALK) )
+            curr_state <= KICK;	
+		  /*else if ( !(keycode==8'h56) && (curr_state==PUNCH || curr_state==PUNCH1 || curr_state==PUNCH2 || curr_state==PUNCH3 || curr_state==PUNCH4 || curr_state==PUNCH5 || curr_state==PUNCH6 || curr_state==PUNCH7 || curr_state==PUNCH8 || curr_state==PUNCH9 || curr_state==PUNCH10) )
+            curr_state <= FIGHT;
+		  else if ( !(keycode==8'h57) && (curr_state==KICK || curr_state==KICK1 || curr_state==KICK2 || curr_state==KICK3 || curr_state==KICK4) )
+            curr_state <= FIGHT;*/
+		  else if ( ( (keycode==8'h04) || (keycode==8'h07) ) && (curr_state==FIGHT) )
+            curr_state <= WALK;
+		  else if ( !( (keycode==8'h04) || (keycode==8'h07) ) && (curr_state==WALK || curr_state==WALK1 || curr_state==WALK2 || curr_state==WALK3 || curr_state==WALK4 || curr_state==WALK5 || curr_state==WALK6 || curr_state==WALK7 || curr_state==WALK8 || curr_state==WALK9))
+            curr_state <= FIGHT;
+		  else if ( ( (keycode==8'h04) || (keycode==8'h07) ) && (curr_state==STAND) )
+            curr_state <= RUN;
+	     else if ( !( (keycode==8'h04) || (keycode==8'h07) ) && (curr_state==RUN || curr_state==RUN1 || curr_state==RUN2 || curr_state==RUN3 || curr_state==RUN4 || curr_state==RUN5 || curr_state==RUN6 || curr_state==RUN7 || curr_state==RUN8 || curr_state==RUN9))
+            curr_state <= STAND;			
+        else 
+            curr_state <= next_state;
+    end
+	 
+	 //logic [7:0] RR, GG, BB;
+
+    // Assign outputs based on state
+	always_comb
+    begin
+        
+		  next_state = curr_state;	//required because I haven't enumerated all possibilities below
+        unique case (curr_state) 
+
+            STAND :  next_state = curr_state;
+				RUN :    next_state = RUN8;
+				REVERENCE : next_state = REVERENCE1;
+				
+            FIGHT :  next_state = curr_state;
+				WALK :   next_state = WALK1;
+				PUNCH :  next_state = PUNCH1;
+				KICK :   next_state = KICK1;
+				
+				DEATH : next_state = DEATH1;
+				
+				VICTORY : next_state =VICTORY1;
+				
+				SWITCH0_0 :	next_state = SWITCH0_1;
+				SWITCH0_1 :	next_state = SWITCH0_2;
+				SWITCH0_2 :	next_state = SWITCH0_3;
+				SWITCH0_3 :	next_state = SWITCH0_4;
+				SWITCH0_4 :	next_state = FIGHT;
+				
+				SWITCH1_0 :	next_state = SWITCH1_1;
+				SWITCH1_1 :	next_state = SWITCH1_2;
+				SWITCH1_2 :	next_state = SWITCH1_3;
+				SWITCH1_3 :	next_state = SWITCH1_4;
+				SWITCH1_4 :	next_state = STAND;
+				
+				WALK1 : next_state = WALK2;
+				WALK2 : next_state = WALK3;
+				WALK3 : next_state = WALK4;
+				WALK4 : next_state = WALK5;
+				WALK5 : next_state = WALK6;
+				WALK6 : next_state = WALK7;
+				WALK7 : next_state = WALK8;
+				WALK8 : next_state = WALK9;
+				WALK9 : next_state = WALK;
+				
+				RUN1 : next_state = RUN2;
+				RUN2 : next_state = RUN3;
+				RUN3 : next_state = RUN4;
+				RUN4 : next_state = RUN5;
+				RUN5 : next_state = RUN6;
+				RUN6 : next_state = RUN7;
+				RUN7 : next_state = RUN8;
+				RUN8 : next_state = RUN9;
+				RUN9 : next_state = RUN1;
+				
+				REVERENCE1: next_state = REVERENCE2;
+				REVERENCE2: next_state = REVERENCE3;
+				REVERENCE3: next_state = REVERENCE4;
+				REVERENCE4: next_state = REVERENCE5;
+				REVERENCE5: next_state = STAND;
+				
+				PUNCH1 :  next_state = PUNCH2;
+				PUNCH2 :  next_state = PUNCH3;
+				PUNCH3 :  next_state = PUNCH4;
+				PUNCH4 :  next_state = PUNCH5;
+				PUNCH5 :  next_state = PUNCH6;
+				PUNCH6 :  next_state = PUNCH7;
+				PUNCH7 :  next_state = PUNCH8;
+				PUNCH8 :  next_state = PUNCH9;
+				PUNCH9 :  next_state = PUNCH10;
+				PUNCH10 :  next_state = FIGHT;
+				
+				KICK1 :   next_state = KICK2;
+				KICK2 :   next_state = KICK3;
+				KICK3 :   next_state = KICK4;
+				KICK4 :   next_state = FIGHT;
+				
+				DEATH1 : next_state = DEATH2;
+				DEATH2 : next_state = DEATH3;
+				DEATH3 : next_state = DEATH4;
+				DEATH4 : next_state = DEATH4;
+				
+				VICTORY1 : next_state = VICTORY2;
+				VICTORY2 : next_state = VICTORY3;
+				VICTORY3 : next_state = VICTORY4;
+				VICTORY4 : next_state = VICTORY5;
+				VICTORY5 : next_state = VICTORY6;
+				VICTORY6 : next_state = VICTORY7;
+				VICTORY7 : next_state = VICTORY7;
+							  
+        endcase
+   
+		  // Assign outputs based on ‘state’
+        case (curr_state) 
+		  
+	   	   STAND: 
+	         begin
+					 colorcode=8'h0;
+		      end
+				
+				RUN:
+				begin
+					 colorcode=8'h5;
+		      end
+				
+				FIGHT: 
+	         begin
+				    colorcode=8'h4;
+		      end
+				
+				PUNCH:
+				begin
+				    colorcode=8'h19;
+				end
+				
+				KICK:
+				begin
+				    colorcode=8'h24;
+				end
+				
+				REVERENCE:
+				begin
+				    colorcode=8'h29;
+				end
+				
+				DEATH:
+				begin
+					colorcode=8'h2C;
+				end
+				
+				VICTORY:
+				begin
+					colorcode=8'h31;
+				end
+				
+				SWITCH0_0:
+				begin
+				    colorcode=8'h0;
+				end
+				
+				SWITCH0_1:
+				begin
+				    colorcode=8'h1;
+				end
+				
+				SWITCH0_2:
+				begin
+					 colorcode=8'h2;
+				end
+				
+				SWITCH0_3:
+				begin
+				    colorcode=8'h3;
+				end
+				
+				SWITCH0_4:
+				begin
+				    colorcode=8'h4;
+				end
+				
+				SWITCH1_0:
+				begin
+				    colorcode=8'h4;
+				end
+				
+				SWITCH1_1:
+				begin
+				    colorcode=8'h3;
+				end
+				
+				SWITCH1_2:
+				begin
+				    colorcode=8'h2;
+				end
+				
+				SWITCH1_3:
+				begin
+				    colorcode=8'h1;
+				end
+				
+				SWITCH1_4:
+				begin
+				    colorcode=8'h0;
+				end
+				
+				WALK:
+				begin
+				    colorcode=8'hF;
+				end
+				
+				WALK1:
+				begin
+				    colorcode=8'h10;
+				end
+				
+				WALK2:
+				begin
+				    colorcode=8'h11;
+				end
+				
+				WALK3:
+				begin
+				    colorcode=8'h12;
+				end
+				
+				WALK4:
+				begin
+				    colorcode=8'h13;
+				end
+				
+				WALK5:
+				begin
+				    colorcode=8'h14;
+				end
+				
+				WALK6:
+				begin
+				    colorcode=8'h15;
+				end
+				
+				WALK7:
+				begin
+				    colorcode=8'h16;
+				end
+				
+				WALK8:
+				begin
+				    colorcode=8'h17;
+				end
+				
+			   WALK9:
+				begin
+				    colorcode=8'h18;
+				end
+				
+				RUN1:
+				begin
+				    colorcode=8'h6;
+				end
+				
+				RUN2:
+				begin
+				    colorcode=8'h7;
+				end
+				
+				RUN3:
+				begin
+				    colorcode=8'h8;
+				end
+				
+				RUN4:
+				begin
+				    colorcode=8'h9;
+				end
+				
+				RUN5:
+				begin
+				    colorcode=8'hA;
+				end
+				
+				RUN6:
+				begin
+				    colorcode=8'hB;
+				end
+				
+				RUN7:
+				begin
+				    colorcode=8'hC;
+				end
+				
+				RUN8:
+				begin
+				    colorcode=8'hD;
+				end
+				
+			   RUN9:
+				begin
+				    colorcode=8'hE;
+				end
+				
+				REVERENCE1:
+				begin
+				    colorcode=8'h2A;
+				end
+				
+				REVERENCE2:
+				begin
+				    colorcode=8'h2B;
+				end
+				
+				REVERENCE3:
+				begin
+				    colorcode=8'h2B;
+				end
+				
+				REVERENCE4:
+				begin
+				    colorcode=8'h2A;
+				end
+				
+				REVERENCE5:
+				begin
+				    colorcode=8'h29;
+				end
+				
+				PUNCH1:
+				begin
+				    colorcode=8'h1A;
+				end
+				
+				PUNCH2:
+				begin
+				    colorcode=8'h1B;
+				end
+				
+				PUNCH3:
+				begin
+				    colorcode=8'h1C;
+				end
+				
+				PUNCH4:
+				begin
+				    colorcode=8'h1D;
+				end
+				
+				PUNCH5:
+				begin
+					 colorcode=8'h1E;
+				end
+				
+				PUNCH6:
+				begin
+					 colorcode=8'h1F;
+				end
+				
+				PUNCH7:
+				begin
+					 colorcode=8'h20;
+				end
+				
+				PUNCH8:
+				begin
+					 colorcode=8'h21;
+				end
+				
+				PUNCH9:
+				begin
+					 colorcode=8'h22;
+				end
+				
+				PUNCH10:
+				begin
+					 colorcode=8'h23;
+				end
+				
+				KICK1:
+				begin
+					 colorcode=8'h24;
+				end
+				
+				KICK2:
+				begin
+					 colorcode=8'h25;
+				end
+				
+				KICK3:
+				begin
+					 colorcode=8'h26;
+				end
+
+				KICK4:
+				begin
+					 colorcode=8'h27;
+				end
+				
+				DEATH1:
+				begin
+					colorcode=8'h2D;
+				end
+				
+				DEATH2:
+				begin
+					colorcode=8'h2E;
+				end
+				
+				DEATH3:
+				begin
+					colorcode=8'h2F;
+				end
+				
+				DEATH4:
+				begin
+					colorcode=8'h30;
+				end
+				
+				VICTORY1:
+				begin
+					colorcode=8'h31;
+				end
+				
+				VICTORY2:
+				begin
+					colorcode=8'h31;
+				end
+				
+				VICTORY3:
+				begin
+					colorcode=8'h31;
+				end
+				
+				VICTORY4:
+				begin
+					colorcode=8'h32;
+				end
+				
+				VICTORY5:
+				begin
+					colorcode=8'h32;
+				end
+				
+				VICTORY6:
+				begin
+					colorcode=8'h32;
+				end
+				
+				VICTORY7:
+				begin
+					colorcode=8'h32;
+				end
+				
+        endcase
+		  
+    end
+
+endmodule

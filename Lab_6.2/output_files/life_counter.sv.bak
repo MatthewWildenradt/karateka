@@ -1,0 +1,9 @@
+module life_counter( output logic [7:0] Clk, 
+							output logic [7:0] HitH, 
+							output logic [7:0] HitE, 
+							output logic [7:0] HealthH, 
+							output logic [7:0] HealthE, 
+							output logic [7:0] DeathH, 
+							output logic [7:0] DeathE );
+							
+endmodule
